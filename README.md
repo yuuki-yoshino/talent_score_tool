@@ -1,1 +1,0 @@
-# talent_score_calculator
