@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>才能スコア診断ツール — 掛け算の法則</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:    #2b6cb0;
+    --blue-lt: #ebf8ff;
+    --blue-dk: #2c5282;
+    --green:   #38a169;
+    --green-lt:#f0fff4;
+    --amber:   #b7791f;
+    --amber-lt:#fffbeb;
+    --red:     #e53e3e;
+    --gray-50: #f9fafb;
+    --gray-100:#f3f4f6;
+    --gray-200:#e5e7eb;
+    --gray-400:#9ca3af;
+    --gray-600:#6b7280;
+    --gray-800:#1f2937;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #f0f4f8;
+    color: var(--gray-800);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .header-badge {
+    display: inline-block;
+    background: var(--blue);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 0.75rem;
+  }
+  .header h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--gray-800);
+    margin-bottom: 0.5rem;
+  }
+  .header p {
+    font-size: 13px;
+    color: var(--gray-600);
+    line-height: 1.7;
+  }
+
+  /* Formula */
+  .formula-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .formula-card .f-label {
+    font-size: 11px;
+    color: var(--gray-400);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+  }
+  .formula-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .f-box {
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+  }
+  .f-talent { background: var(--blue-lt); color: var(--blue-dk); }
+  .f-effort { background: var(--green-lt); color: #276749; }
+  .f-era    { background: var(--amber-lt); color: #744210; }
+  .f-op { font-size: 1.3rem; color: var(--gray-400); font-weight: 300; }
+  .f-result { font-size: 1.6rem; font-weight: 700; color: var(--amber); }
+
+  /* Fields */
+  .fields-wrap { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
+
+  .field-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+  .field-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .field-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--blue); flex-shrink: 0;
+  }
+  .field-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-800);
+    background: transparent;
+    min-width: 0;
+  }
+  .field-input::placeholder { color: var(--gray-400); font-weight: 400; }
+  .remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--gray-400);
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .remove-btn:hover { color: var(--red); background: #fff5f5; }
+
+  .sliders-area { padding: 0.9rem 1.25rem; }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.65rem;
+  }
+  .slider-row:last-child { margin-bottom: 0; }
+
+  .s-label {
+    font-size: 12px;
+    color: var(--gray-600);
+    width: 76px;
+    flex-shrink: 0;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"].r-talent { background: linear-gradient(to right, var(--blue) 0%, var(--blue) var(--pct,60%), var(--gray-200) var(--pct,60%)); }
+  input[type="range"].r-effort { background: linear-gradient(to right, var(--green) 0%, var(--green) var(--pct,60%), var(--gray-200) var(--pct,60%)); }
+  input[type="range"].r-era    { background: linear-gradient(to right, var(--amber) 0%, var(--amber) var(--pct,60%), var(--gray-200) var(--pct,60%)); }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid currentColor;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+  }
+  input[type="range"].r-talent::-webkit-slider-thumb { border-color: var(--blue); }
+  input[type="range"].r-effort::-webkit-slider-thumb { border-color: var(--green); }
+  input[type="range"].r-era::-webkit-slider-thumb    { border-color: var(--amber); }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+  .s-val {
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 18px;
+    text-align: right;
+  }
+  .sv-talent { color: var(--blue); }
+  .sv-effort { color: var(--green); }
+  .sv-era    { color: var(--amber); }
+
+  .field-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1.25rem 0.9rem;
+    border-top: 1px solid var(--gray-100);
+  }
+  .field-formula { font-size: 12px; color: var(--gray-400); }
+  .field-score   { font-size: 1.5rem; font-weight: 700; }
+
+  /* Add button */
+  .add-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px dashed var(--gray-200);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--gray-600);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    margin-bottom: 1.5rem;
+  }
+  .add-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+
+  /* Result panel */
+  .result-panel {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    display: none;
+  }
+  .result-panel.visible { display: block; }
+
+  .result-header {
+    padding: 1rem 1.25rem;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--gray-400);
+  }
+
+  .bar-list { padding: 1rem 1.25rem; }
+  .bar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .bar-item:last-child { margin-bottom: 0; }
+  .bar-name {
+    font-size: 12px;
+    color: var(--gray-600);
+    width: 80px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+  }
+  .bar-track {
+    flex: 1;
+    height: 16px;
+    background: var(--gray-100);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  .bar-val {
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 32px;
+    text-align: right;
+  }
+
+  .advice-box {
+    margin: 0 1.25rem 1.25rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.1rem;
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--gray-600);
+    border-left: 3px solid var(--blue);
+  }
+  .advice-box strong { color: var(--gray-800); font-weight: 700; }
+
+  /* Tips */
+  .tips {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .tips-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--gray-400);
+    margin-bottom: 0.75rem;
+  }
+  .tips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tip-item {
+    background: var(--gray-50);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    text-align: center;
+  }
+  .tip-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .tip-desc  { font-size: 11px; color: var(--gray-600); line-height: 1.5; }
+  .tip-blue  { color: var(--blue); }
+  .tip-green { color: var(--green); }
+  .tip-amber { color: var(--amber); }
+
+  /* Footer */
+  .footer { text-align: center; font-size: 11px; color: var(--gray-400); padding-top: 1rem; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="header">
+    <div class="header-badge">掛け算の法則</div>
+    <h1>才能スコア診断ツール</h1>
+    <p>分野ごとに3つのスコアをつけて、<br>才能が活きる場所を見つけよう</p>
+  </header>
+
+  <div class="formula-card">
+    <div class="f-label">成果の方程式</div>
+    <div class="formula-row">
+      <div class="f-box f-talent">才能<br><span style="font-size:10px;font-weight:400">1〜5</span></div>
+      <div class="f-op">×</div>
+      <div class="f-box f-effort">努力<br><span style="font-size:10px;font-weight:400">1〜5</span></div>
+      <div class="f-op">×</div>
+      <div class="f-box f-era">時代の流れ<br><span style="font-size:10px;font-weight:400">1〜5</span></div>
+      <div class="f-op">=</div>
+      <div class="f-result">最大 125</div>
+    </div>
+  </div>
+
+  <div class="fields-wrap" id="fields-wrap"></div>
+
+  <button class="add-btn" onclick="addField()">＋ 分野を追加する</button>
+
+  <div class="result-panel" id="result-panel">
+    <div class="result-header">スコア比較（高い順）</div>
+    <div class="bar-list" id="bar-list"></div>
+    <div class="advice-box" id="advice-box"></div>
+  </div>
+
+  <div class="tips">
+    <div class="tips-title">スコアの目安</div>
+    <div class="tips-grid">
+      <div class="tip-item">
+        <div class="tip-label tip-blue">才能</div>
+        <div class="tip-desc">同じ努力量で他より結果が出るか／苦なく続けられるか</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-label tip-green">努力</div>
+        <div class="tip-desc">今どれだけ本気で取り組んでいるか（5＝全力）</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-label tip-amber">時代の流れ</div>
+        <div class="tip-desc">その分野に今、追い風が吹いているか</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">才能 × 努力 × 時代の流れ — 掛け算の法則</div>
+
+</div>
+
+<script>
+var fields = [];
+var uid = 0;
+
+function scoreColor(s) {
+  if (s >= 75) return '#38a169';
+  if (s >= 40) return '#b7791f';
+  return '#e53e3e';
+}
+
+function pct(v) {
+  return Math.round((v - 1) / 4 * 100) + '%';
+}
+
+function addField() {
+  var id = uid++;
+  fields.push({ id: id, name: '', talent: 3, effort: 3, era: 3 });
+  renderAll();
+}
+
+function removeField(id) {
+  fields = fields.filter(function(f){ return f.id !== id; });
+  renderAll();
+}
+
+function renderAll() {
+  renderFields();
+  renderResults();
+}
+
+function renderFields() {
+  var wrap = document.getElementById('fields-wrap');
+  wrap.innerHTML = '';
+  fields.forEach(function(f) {
+    var score = f.talent * f.effort * f.era;
+    var color = scoreColor(score);
+    var card = document.createElement('div');
+    card.className = 'field-card';
+    card.innerHTML =
+      '<div class="field-header">' +
+        '<div class="field-dot"></div>' +
+        '<input class="field-input" type="text" placeholder="分野名（例：ブログ執筆、動画編集）" value="' + esc(f.name) + '" oninput="setName(' + f.id + ',this.value)">' +
+        '<button class="remove-btn" onclick="removeField(' + f.id + ')" title="削除">×</button>' +
+      '</div>' +
+      '<div class="sliders-area">' +
+        makeSlider(f.id, 'talent', '才能', f.talent) +
+        makeSlider(f.id, 'effort', '努力', f.effort) +
+        makeSlider(f.id, 'era',    '時代の流れ', f.era) +
+      '</div>' +
+      '<div class="field-footer">' +
+        '<span class="field-formula">' + f.talent + ' × ' + f.effort + ' × ' + f.era + '</span>' +
+        '<span class="field-score" style="color:' + color + '">' + score + '</span>' +
+      '</div>';
+    wrap.appendChild(card);
+
+    ['talent','effort','era'].forEach(function(key) {
+      var range = document.getElementById('r-' + f.id + '-' + key);
+      if (range) updateRangeStyle(range, key);
+    });
+  });
+}
+
+function makeSlider(id, key, label, val) {
+  var cls = 'r-' + key;
+  var vcls = 'sv-' + key;
+  return '<div class="slider-row">' +
+    '<span class="s-label">' + label + '</span>' +
+    '<input type="range" id="r-' + id + '-' + key + '" class="' + cls + '" min="1" max="5" step="1" value="' + val + '" oninput="setVal(' + id + ',\'' + key + '\',this)">' +
+    '<span class="s-val ' + vcls + '" id="sv-' + id + '-' + key + '">' + val + '</span>' +
+  '</div>';
+}
+
+function updateRangeStyle(el, key) {
+  var v = parseInt(el.value);
+  var p = Math.round((v - 1) / 4 * 100);
+  el.style.setProperty('--pct', p + '%');
+}
+
+function setName(id, val) {
+  var f = fields.find(function(x){ return x.id === id; });
+  if (f) f.name = val;
+  renderResults();
+}
+
+function setVal(id, key, rangeEl) {
+  var f = fields.find(function(x){ return x.id === id; });
+  if (!f) return;
+  f[key] = parseInt(rangeEl.value);
+  updateRangeStyle(rangeEl, key);
+  var sv = document.getElementById('sv-' + id + '-' + key);
+  if (sv) sv.textContent = f[key];
+  var score = f.talent * f.effort * f.era;
+  var footer = rangeEl.closest('.field-card').querySelector('.field-score');
+  if (footer) { footer.textContent = score; footer.style.color = scoreColor(score); }
+  var formula = rangeEl.closest('.field-card').querySelector('.field-formula');
+  if (formula) formula.textContent = f.talent + ' × ' + f.effort + ' × ' + f.era;
+  renderResults();
+}
+
+function renderResults() {
+  var panel = document.getElementById('result-panel');
+  if (fields.length === 0) { panel.classList.remove('visible'); return; }
+  panel.classList.add('visible');
+
+  var sorted = fields.slice().sort(function(a,b){
+    return (b.talent*b.effort*b.era) - (a.talent*a.effort*a.era);
+  });
+
+  var barList = document.getElementById('bar-list');
+  barList.innerHTML = '';
+  sorted.forEach(function(f, i) {
+    var score = f.talent * f.effort * f.era;
+    var p = Math.round(score / 125 * 100);
+    var color = scoreColor(score);
+    var row = document.createElement('div');
+    row.className = 'bar-item';
+    row.innerHTML =
+      '<span class="bar-name">' + (esc(f.name) || '未入力') + '</span>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' + p + '%;background:' + color + '"></div></div>' +
+      '<span class="bar-val" style="color:' + color + '">' + score + '</span>';
+    barList.appendChild(row);
+  });
+
+  var best = sorted[0];
+  var bestScore = best.talent * best.effort * best.era;
+  var bestName = best.name || 'この分野';
+  var msg = '';
+  if (bestScore >= 75) {
+    msg = '<strong>' + bestName + '</strong>は高スコアです。才能・努力・時代の3要素が揃っており、ここへの集中投資が成果を最大化する近道です。';
+  } else if (best.effort <= 2) {
+    msg = '<strong>' + bestName + '</strong>は努力スコアがまだ低い状態です。まず努力を「5」に上げてから結果を再評価してみてください。才能を正確に測れるのは、努力を最大化した後です。';
+  } else if (best.talent <= 2) {
+    msg = 'どの分野も才能スコアが低めです。まだ自分の才能が活きる分野に出会っていない可能性があります。新しい分野をもっと試してみましょう。';
+  } else if (best.era <= 2) {
+    msg = '<strong>' + bestName + '</strong>は才能と努力があっても、時代の追い風が弱い状態です。同じ才能を活かせる、より追い風が強い隣接分野を探してみましょう。';
+  } else {
+    msg = '<strong>' + bestName + '</strong>が現在最もスコアが高いです。3つの要素のうち最も低いスコアを優先的に伸ばすことで、全体の掛け算が大きく改善します。';
+  }
+  document.getElementById('advice-box').innerHTML = msg;
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+addField();
+addField();
+</script>
+</body>
+</html>
